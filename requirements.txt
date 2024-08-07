@@ -1,0 +1,10 @@
+Flask==2.2.5
+flask-socketio==5.3.4
+python-socketio==5.8.0
+eventlet==0.33.1
+PyMuPDF==1.21.1
+pandas==2.0.3
+Pillow==10.0.0
+pytesseract==0.3.10
+markdown==3.4.4
+requests==2.31.0

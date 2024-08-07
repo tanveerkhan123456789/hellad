@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Processor</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        pre {
+            display: block;
+            font-size: 87.5%;
+            color: #ffffff;
+            padding: 10px;
+            background: black;
+        }
+        table {
+            border: 1px solid #ccc;
+            border-collapse: collapse;
+        }
+
+        table th {
+            background-color: #5867dd !important;
+            color: white !important;
+            font-weight: bold !important;
+        }
+        .table>:not(:first-child) {
+border-top:0px !important;
+}
+        table th,
+        table td {
+            text-align:center;
+            padding: 5px;
+            border: 1px solid #ccc;
+            font-size: 13px;
+        }
+ 
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Upload a File</h1>
+        <form id="file-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="text" name="message" class="form-control" id="messageInput" required>
+                <input type="file" name="file" class="form-control-file" id="fileInput">
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+        <hr>
+        <div id="result" class="mt-4"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        var socket = io();
+        var contentBuffer = "";
+        socket.on('stream', function(data) {
+            // Accumulate content
+            contentBuffer += data.html_content;
+
+            // Convert accumulated Markdown content to HTML
+            var htmlContent = marked.parse(contentBuffer);
+
+            // Update the result div with converted HTML
+            document.getElementById('result').innerHTML = htmlContent;
+        });
+        // Handle file form submission
+        document.getElementById('file-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var fileInput = document.getElementById('fileInput');
+            var messageInput = document.getElementById('messageInput');
+            
+            // Clear previous content
+            document.getElementById('result').innerHTML = "";
+            contentBuffer = "";  // Reset the buffer
+
+            var file = fileInput.files[0];
+            var message = messageInput.value;
+
+            var reader = new FileReader();
+
+            var data = {
+                message: message
+            };
+
+            if (file) {
+                reader.onload = function(e) {
+                    data.file = {
+                        filename: file.name,
+                        content: new Uint8Array(e.target.result)
+                    };
+                    socket.emit('process_file', data);
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                socket.emit('process_file', data);
+            }
+        });
+
+        // Handle streaming responses
+      
+    </script>
+</body>
+</html>
